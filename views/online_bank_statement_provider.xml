@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="online_bank_statement_provider_form">
+        <field name="name">online.bank.statement.provider.form.tilisy</field>
+        <field name="model">online.bank.statement.provider</field>
+        <field
+            name="inherit_id"
+            ref="account_statement_import_online.online_bank_statement_provider_form"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='main']" position="inside">
+                <group name="tilisy" attrs="{'invisible':[('service','!=','tilisy')]}">
+                    <field name="private_key" password="1"/>
+                    <field name="application_id" />
+                    <field name="redirect_url" />
+                    <field name="aspsp_name" />
+                    <field name="aspsp_country" />
+
+                    <button string="Authenticate"
+                            type="object"
+                            name="action_tilisy_authenticate"
+                            groups="base.group_system"
+                            class="oe_highlight"
+                    />
+
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

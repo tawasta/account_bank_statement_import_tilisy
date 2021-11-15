@@ -10,11 +10,11 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='main']" position="inside">
                 <group name="tilisy" attrs="{'invisible':[('service','!=','tilisy')]}">
-                    <field name="private_key" password="1"/>
                     <field name="application_id" />
                     <field name="redirect_url" />
                     <field name="aspsp_name" />
                     <field name="aspsp_country" />
+                    <field name="key" />
 
                     <button string="Authenticate"
                             type="object"

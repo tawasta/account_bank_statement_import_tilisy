@@ -68,10 +68,10 @@ class OnlineBankStatementProviderPonto(models.Model):
         }
         jwt = pyjwt.encode(
             jwt_body,
-            base64.b64decode(self.key),
+            base64.b64decode(self.key).decode("utf-8"),
             algorithm="RS256",
             headers={"kid": self.application_id},
-        )
+        ).decode("utf-8")
         _logger.info(f"JWT: {jwt}")
 
         return jwt

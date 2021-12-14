@@ -12,19 +12,20 @@ Configuration
 =============
 1. Install the module from Apps
 2. Create an Application in https://enablebanking.com
-3. In Odoo, go to Invoicing->Configuration->Journals
-4. Create (or edit) a journal belonging to a bank account
-5. Select "Online (OCA)" from Bank Feeds
-6. Select Tilisy.com as provider and save
-7. Click the provider link (in Online Bank Statements (OCA)
-8. Edit the provider and provide information from EnableBanking:
+3. Enable "Show Full Accounting Features" to your user
+4. In Odoo, go to Invoicing->Configuration->Journals
+5. Create (or edit) a journal belonging to a bank account
+6. Select "Online (OCA)" from Bank Feeds
+7. Select Tilisy.com as provider and save
+8. Click the provider link (in Online Bank Statements (OCA)
+9. Edit the provider and provide information from EnableBanking:
  - Application ID
  - Redirect URL (if not correct)
  - ASPSP Name (Bank name)
  - ASPSP Country code (e.g. "FI")
  - Key (Private key)
-9. Click "Authenticate" and make the authentication
-10. Return to the Journal and press "Pull Online Bank Statement"
+10. Click "Authenticate" and make the authentication
+11. Return to the Journal and press "Pull Online Bank Statement"
 
 Credits
 =======

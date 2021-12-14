@@ -32,7 +32,12 @@ class OnlineBankStatementProviderPonto(models.Model):
 
     # TODO: get these from Journal bank
     aspsp_name = fields.Char(string="ASPSP Name")
-    aspsp_country = fields.Char(string="ASPSP country")
+    aspsp_country = fields.Many2one(string="ASPSP country", comodel_name="res.country")
+    psu_type = fields.Selection(
+        string="Account type",
+        selection=[("business", "Business"), ("personal", "Personal")],
+        default="personal",
+    )
 
     def _default_redirect_url(self):
         url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
@@ -98,10 +103,10 @@ class OnlineBankStatementProviderPonto(models.Model):
                     datetime.now(timezone.utc) + timedelta(days=10)
                 ).isoformat()
             },
-            "aspsp": {"name": self.aspsp_name, "country": self.aspsp_country},
+            "aspsp": {"name": self.aspsp_name, "country": self.aspsp_country.code},
             "state": str(uuid.uuid4()),
             "redirect_url": self.redirect_url,
-            "psu_type": "personal",
+            "psu_type": self.psu_type,
         }
         r = requests.post(f"{self.api_origin}/auth", json=body, headers=base_headers)
         if r.status_code == 200:

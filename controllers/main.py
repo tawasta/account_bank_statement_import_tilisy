@@ -8,7 +8,6 @@ from odoo.http import request
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
-from datetime import datetime, timezone, timedelta
 
 
 class TilisyController(http.Controller):
@@ -16,9 +15,9 @@ class TilisyController(http.Controller):
     def tilisy_auth(self, *args, **kwargs):
 
         auth_code = kwargs.get("code")
-        # TODO: how to find the correct provider?
+        tilisy_state = kwargs.get("state")
         provider = request.env["online.bank.statement.provider"].search(
-            [("service", "=", "tilisy")], limit=1
+            [("service", "=", "tilisy"), ("tilisy_state", "=", tilisy_state)], limit=1
         )
         jwt = provider._tilisy_get_jwt_token()
         base_headers = {"Authorization": f"Bearer {jwt}"}

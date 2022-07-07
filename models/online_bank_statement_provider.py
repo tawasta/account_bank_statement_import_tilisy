@@ -31,13 +31,14 @@ class OnlineBankStatementProviderPonto(models.Model):
     session = fields.Char(string="Latest session", readonly=True)
 
     # TODO: get these from Journal bank
-    aspsp_name = fields.Char(string="ASPSP Name")
+    aspsp_name = fields.Char(string="ASPSP name")
     aspsp_country = fields.Many2one(string="ASPSP country", comodel_name="res.country")
     psu_type = fields.Selection(
         string="Account type",
         selection=[("business", "Business"), ("personal", "Personal")],
         default="personal",
     )
+    tilisy_state = fields.Char(help="Helper for identifying the correct provider")
 
     def _default_redirect_url(self):
         url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
@@ -61,6 +62,59 @@ class OnlineBankStatementProviderPonto(models.Model):
     def action_tilisy_authenticate(self):
         return self._tilisy_authorize()
 
+    def action_tilisy_get_aspsp(self):
+        """ Fetch ASPSP information using bank BIC in Journal """
+        self.ensure_one()
+
+        if not self.journal_id.bank_account_id:
+            raise ValidationError(
+                _("Please go to the journal and configure a bank account")
+            )
+
+        if not self.journal_id.bank_account_id.bank_bic:
+            raise ValidationError(
+                _("Please go to the journal bank account and configure a bank with BIC")
+            )
+
+        bic = self.journal_id.bank_account_id.bank_bic
+
+        jwt = self._tilisy_get_jwt_token()
+        base_headers = self._tilisy_get_basic_headers(jwt)
+        body = {"psu_type": self.psu_type, "country": self.journal_id.country_code}
+        r = requests.get(f"{self.api_origin}/aspsps", params=body, headers=base_headers)
+
+        aspsp_names = []
+        for aspsp in r.json().get("aspsps", []):
+            aspsp_name = aspsp.get("name")
+            aspsp_names.append(aspsp_name)
+
+            if aspsp.get("bic") and aspsp.get("bic") == bic:
+                self.aspsp_name = aspsp_name
+                self.aspsp_country = aspsp.get("country")
+
+        if not self.aspsp_name:
+            raise ValidationError(
+                _(
+                    "Could not find ASPSP info. Please check your bank BIC and name. Possible names: {}".format(
+                        ", ".join(aspsp_names)
+                    )
+                )
+            )
+
+    def _tilisy_get_basic_headers(self, jwt):
+        base_headers = {"Authorization": f"Bearer {jwt}"}
+
+        # Requesting application details
+        # This doesn't really do anything but fetch and print the details
+        r = requests.get(f"{self.api_origin}/application", headers=base_headers)
+        if r.status_code == 200:
+            app = r.json()
+            _logger.info(f"Application details: {app}")
+        else:
+            raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
+
+        return base_headers
+
     def _tilisy_get_jwt_token(self):
         iat = int(datetime.now().timestamp())
 
@@ -76,7 +130,11 @@ class OnlineBankStatementProviderPonto(models.Model):
             base64.b64decode(self.key).decode("utf-8"),
             algorithm="RS256",
             headers={"kid": self.application_id},
-        ).decode("utf-8")
+        )
+
+        if not isinstance(jwt, str):
+            jwt = jwt.decode("utf-8")
+
         _logger.info(f"JWT: {jwt}")
 
         return jwt
@@ -86,25 +144,19 @@ class OnlineBankStatementProviderPonto(models.Model):
         Tilisy: authorization
         """
         jwt = self._tilisy_get_jwt_token()
-        base_headers = {"Authorization": f"Bearer {jwt}"}
-
-        # Requesting application details
-        r = requests.get(f"{self.api_origin}/application", headers=base_headers)
-        if r.status_code == 200:
-            app = r.json()
-            _logger.info(f"Application details: {app}")
-        else:
-            raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
+        base_headers = self._tilisy_get_basic_headers(jwt)
+        tilisy_state = str(uuid.uuid4())
 
         # Starting authorization
         body = {
             "access": {
+                # Maximum validity 90 days
                 "valid_until": (
-                    datetime.now(timezone.utc) + timedelta(days=10)
+                    datetime.now(timezone.utc) + timedelta(days=90)
                 ).isoformat()
             },
             "aspsp": {"name": self.aspsp_name, "country": self.aspsp_country.code},
-            "state": str(uuid.uuid4()),
+            "state": tilisy_state,
             "redirect_url": self.redirect_url,
             "psu_type": self.psu_type,
         }
@@ -112,6 +164,7 @@ class OnlineBankStatementProviderPonto(models.Model):
         if r.status_code == 200:
             # Save the jwt for controller
             self.jwt = jwt
+            self.tilisy_state = tilisy_state
             auth_url = r.json()["url"]
             return {
                 "type": "ir.actions.act_url",
@@ -135,6 +188,13 @@ class OnlineBankStatementProviderPonto(models.Model):
 
         session = json.loads(self.session)
         # Using the first available account for the following API calls
+        if not session.get("accounts"):
+            raise ValidationError(
+                _(
+                    "Did not find any accounts. Please check linked accounts in Tilisy management and re-authenticate"
+                )
+            )
+
         # TODO: search for the correct account
         account = session["accounts"][0]
         account_uid = account["uid"]

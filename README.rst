@@ -21,11 +21,10 @@ Configuration
 9. Edit the provider and provide information from EnableBanking:
  - Application ID
  - Redirect URL (if not correct)
- - ASPSP Name (Bank name)
- - ASPSP Country code (e.g. "FI")
  - Key (Private key)
-10. Click "Authenticate" and make the authentication
-11. Return to the Journal and press "Pull Online Bank Statement"
+10. Click "Get ASPSP info"
+11. Click "Authenticate" and make the authentication
+12. Return to the Journal and press "Pull Online Bank Statement"
 
 Credits
 =======

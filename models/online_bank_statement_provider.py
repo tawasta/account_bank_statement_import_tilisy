@@ -90,7 +90,9 @@ class OnlineBankStatementProviderPonto(models.Model):
 
             if aspsp.get("bic") and aspsp.get("bic") == bic:
                 self.aspsp_name = aspsp_name
-                self.aspsp_country = aspsp.get("country")
+                self.aspsp_country = self.env["res.country"].search([
+                    ("code", "=", aspsp.get("country"))
+                ])
 
         if not self.aspsp_name:
             raise ValidationError(

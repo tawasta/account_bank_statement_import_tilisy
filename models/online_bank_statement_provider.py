@@ -238,9 +238,11 @@ class OnlineBankStatementProviderPonto(models.Model):
                         multiplier = 1
 
                     value_date = transaction.get("value_date")
-                    if value_date == None:
+                    if value_date is None:
                         # Some banks don't seem to return a value date
                         value_date = transaction.get("booking_date")
+
+                    partner_name = transaction.get("creditor") and transaction.get("creditor").get("name")
 
                     vals = {
                         "sequence": sequence,
@@ -254,8 +256,14 @@ class OnlineBankStatementProviderPonto(models.Model):
                         * multiplier,  # TODO: currency
                         "account_number": transaction.get("creditor_account")
                         and transaction.get("creditor_account").get("name"),
-                        "partner_name": transaction.get("creditor"),
+                        "partner_name": partner_name
                     }
+
+                    # Try to find partner with exact name match
+                    partner_id = self.env["res.partner"].sudo().search([('name', '=ilike', partner_name)], limit=1)
+                    if partner_id:
+                        vals["partner_id"] = partner_id.id
+
                     if not vals["payment_ref"]:
                         vals["payment_ref"] = vals["ref"]
                     transactions.append(vals)

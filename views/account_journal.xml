@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="view_account_journal_form">
+        <field name="name">account.journal.form.tilisy</field>
+        <field name="model">account.journal</field>
+        <field
+            name="inherit_id"
+            ref="account_statement_import_online.view_account_journal_form"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button type="object"
+                        name="action_tilisy_authenticate"
+                        attrs="{'invisible': [('online_bank_statement_provider', '!=', 'tilisy')]}"
+                        string="Bank authentication"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

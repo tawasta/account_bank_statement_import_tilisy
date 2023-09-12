@@ -26,7 +26,7 @@
                     <field name="aspsp_country" />
                     <field name="tilisy_state" groups="base.group_no_one" readonly="1"/>
 
-                    <button string="Authenticate"
+                    <button string="Bank authentication"
                             attrs="{'invisible':[('aspsp_name','=', False)]}"
                             type="object"
                             name="action_tilisy_authenticate"

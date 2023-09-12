@@ -153,6 +153,7 @@ class OnlineBankStatementProviderPonto(models.Model):
         body = {
             "access": {
                 # Maximum validity 90 days
+                # This was extended to 180 days on 25.7.2023, but not all ASPSP:s support this yet
                 "valid_until": (
                     datetime.now(timezone.utc) + timedelta(days=90)
                 ).isoformat()

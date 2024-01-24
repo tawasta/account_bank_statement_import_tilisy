@@ -39,6 +39,15 @@ class OnlineBankStatementProviderPonto(models.Model):
         default="personal",
     )
     tilisy_state = fields.Char(help="Helper for identifying the correct provider")
+    tilisy_user_id = fields.Many2one(
+        comodel_name="res.users",
+        string="Responsible",
+        help="The person to be notified about expired authentication or other problems"
+    )
+    tilisy_user_notified = fields.Boolean(
+        "User has been notified about Tilisy-problems",
+        default=False
+    )
 
     def _default_redirect_url(self):
         url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
@@ -248,8 +257,8 @@ class OnlineBankStatementProviderPonto(models.Model):
                     vals = {
                         "sequence": sequence,
                         "date": value_date,
-                        "ref": " ".join(transaction.get("remittance_information")),
-                        "payment_ref": transaction.get("reference_number"),
+                        "payment_ref": " ".join(transaction.get("remittance_information")),
+                        "ref": transaction.get("reference_number").lstrip("0"),
                         "unique_import_id": transaction.get("entry_reference"),
                         "amount": float(
                             transaction.get("transaction_amount").get("amount")
@@ -281,13 +290,28 @@ class OnlineBankStatementProviderPonto(models.Model):
                     )
                 )
             elif r.status_code == 401:
-                # Unauthorized (not authorized, expired, etc.
+                # Unauthorized (not authorized, expired, etc).
                 _logger.info(_(f"Error response {r.status_code}: {r.text}"))
-                raise UserError(
-                    _(
-                        "Please re-authenticate by going to Provider and pressing 'Authenticate'"
-                    )
+                base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                redirect_url = "{}/web#id={}&amp;model=online.bank.statement.provider".format(
+                    base_url,
+                    self.id,
                 )
+                redirect_url_html = "<a href='{}'>{}</a>".format(redirect_url, redirect_url)
+                msg = _("Please go to {} and press 'Authenticate' to authorize fetching bank statements".format(
+                    redirect_url_html
+                ))
+                if self.tilisy_user_id and not self.tilisy_user_notified:
+                    partner_id = self.tilisy_user_id.partner_id
+                    subtype_id = self.env.ref("mail.mt_comment")
+                    partner_id.message_post(
+                        body=msg,
+                        message_type="comment",
+                        subtype_id=subtype_id.id,
+                        partner_ids=[partner_id.id],
+                    )
+                    self.tilisy_user_notified = True
+                raise UserError(msg)
             else:
                 raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
 

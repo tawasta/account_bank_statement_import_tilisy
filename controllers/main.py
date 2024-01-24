@@ -37,67 +37,7 @@ class TilisyController(http.Controller):
             raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
 
         provider.session = json.dumps(session)
-
-        """
-        # Using the first available account for the following API calls
-        account = session["accounts"][0]
-        account_uid = account["uid"]
-
-        _logger.info(_(f"Using account {account['account_id']['iban']}"))
-
-        query = {
-            "date_from": (datetime.now(timezone.utc) - timedelta(days=90))
-            .date()
-            .isoformat(),
-        }
-
-        transactions = []
-        sequence = 0
-        continuation_key = None
-        while True:
-            if continuation_key:
-                query["continuation_key"] = continuation_key
-            r = requests.get(
-                f"{provider.api_origin}/accounts/{account_uid}/transactions",
-                params=query,
-                headers=base_headers,
-            )
-            if r.status_code == 200:
-                resp_data = r.json()
-                for transaction in resp_data["transactions"]:
-                    sequence += 1
-                    vals = {
-                        "sequence": sequence,
-                        "date": transaction.get("value_date"),
-                        "ref": " ".join(transaction.get("remittance_information")),
-                        "payment_ref": transaction.get("reference_number"),
-                        "unique_import_id": transaction.get("entry_reference"),
-                        "amount": transaction.get("transaction_amount").get(
-                            "amount"
-                        ),  # TODO: currency
-                        "account_number": transaction.get("creditor_account")
-                        and transaction.get("creditor_account").get("name"),
-                        "partner_name": transaction.get("creditor"),
-                    }
-                    if not vals["payment_ref"]:
-                        vals["payment_ref"] = vals["ref"]
-                    transactions.append(vals)
-
-                continuation_key = resp_data.get("continuation_key")
-                continuation_key = False
-                if not continuation_key:
-                    _logger.info(
-                        _("No continuation key. All transactions were fetched")
-                    )
-                    break
-                _logger.info(
-                    _(
-                        f"Going to fetch more transactions with continuation key {continuation_key}"
-                    )
-                )
-            else:
-                raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
-        """
+        provider.tilisy_user_notified = False
 
         action = request.env.ref("account.action_account_journal_form")
         menu = request.env.ref("account.menu_action_account_journal_form")

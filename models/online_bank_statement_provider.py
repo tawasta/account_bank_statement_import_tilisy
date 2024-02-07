@@ -271,6 +271,9 @@ class OnlineBankStatementProviderPonto(models.Model):
                         "partner_name": partner_name
                     }
 
+                    if not vals.get("payment_ref"):
+                        vals["payment_ref"] = ref
+
                     # Try to find partner with exact name match
                     partner_id = self.env["res.partner"].sudo().search([('name', '=ilike', partner_name)], limit=1)
                     if partner_id:

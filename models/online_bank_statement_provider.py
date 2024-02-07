@@ -255,11 +255,12 @@ class OnlineBankStatementProviderPonto(models.Model):
                     partner_name = transaction.get("creditor") and transaction.get("creditor").get("name")
 
                     ref = transaction.get("reference_number") and transaction.get("reference_number").lstrip("0")
+                    payment_ref = " ".join(transaction.get("remittance_information")) or ref
 
                     vals = {
                         "sequence": sequence,
                         "date": value_date,
-                        "payment_ref": " ".join(transaction.get("remittance_information")),
+                        "payment_ref": payment_ref,
                         "ref": ref,
                         "unique_import_id": transaction.get("entry_reference"),
                         "amount": float(
@@ -268,11 +269,12 @@ class OnlineBankStatementProviderPonto(models.Model):
                         * multiplier,  # TODO: currency
                         "account_number": transaction.get("creditor_account")
                         and transaction.get("creditor_account").get("name"),
-                        "partner_name": partner_name
+                        "partner_name": partner_name,
+                        "narration": partner_name,
                     }
 
                     if not vals.get("payment_ref"):
-                        vals["payment_ref"] = ref
+                        vals["payment_ref"] = "-"
 
                     # Try to find partner with exact name match
                     partner_id = self.env["res.partner"].sudo().search([('name', '=ilike', partner_name)], limit=1)

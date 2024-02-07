@@ -254,11 +254,13 @@ class OnlineBankStatementProviderPonto(models.Model):
 
                     partner_name = transaction.get("creditor") and transaction.get("creditor").get("name")
 
+                    ref = transaction.get("reference_number") and transaction.get("reference_number").lstrip("0")
+
                     vals = {
                         "sequence": sequence,
                         "date": value_date,
                         "payment_ref": " ".join(transaction.get("remittance_information")),
-                        "ref": transaction.get("reference_number").lstrip("0"),
+                        "ref": ref,
                         "unique_import_id": transaction.get("entry_reference"),
                         "amount": float(
                             transaction.get("transaction_amount").get("amount")

@@ -21,7 +21,7 @@
 {
     "name": "Online Bank Statements: Tilisy.com",
     "summary": "Fetch bank account statements from your bank via Tilisy.com",
-    "version": "14.0.1.4.0",
+    "version": "14.0.2.0.0",
     "category": "Invoicing",
     "website": "https://github.com/rockitoy/account_bank_statement_import_tilisy",
     "author": "RockIT, Tawasta",
@@ -31,8 +31,10 @@
     "external_dependencies": {"python": ["pyjwt"], "bin": []},
     "depends": ["account_statement_import_online"],
     "data": [
+        "security/ir_model_access.xml",
         "views/account_journal.xml",
         "views/online_bank_statement_provider.xml",
+        "views/tilisy_application.xml",
     ],
     "demo": [],
 }

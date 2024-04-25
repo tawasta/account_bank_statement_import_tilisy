@@ -10,6 +10,6 @@ class AccountJournal(models.Model):
         # A shortcut for Tilisy authentication
         self.ensure_one()
         if self.online_bank_statement_provider == "tilisy":
-            return self.online_bank_statement_provider_id.action_tilisy_authenticate()
+            return self.online_bank_statement_provider_id.tilisy_application_id.action_tilisy_authenticate()
         else:
             raise ValidationError(_("This authentication only works for Tilisy-provider"))

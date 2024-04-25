@@ -14,11 +14,12 @@ class OnlineBankStatementPullWizard(models.TransientModel):
         for provider in self.provider_ids:
             if provider.service == "tilisy":
                 # Check if authentication is still valid
+                tilisy = provider.tilisy_application_id
                 msg = _("You bank authentication is invalid. Please authenticate and try again")
-                if not provider.session:
+                if not tilisy.session:
                     raise ValidationError(msg)
 
-                session_dict = json.loads(provider.session)
+                session_dict = json.loads(tilisy.session)
                 valid_until = session_dict.get("access", {}).get("valid_until")
                 if valid_until:
                     datetime_format = "%Y-%m-%dT%H:%M:%S"

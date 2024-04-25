@@ -10,30 +10,15 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='main']" position="inside">
                 <group name="tilisy" string="Tilisy.com" attrs="{'invisible':[('service','!=','tilisy')]}">
+                    <field name="bank_id" readonly="1"/>
+                    <field name="tilisy_application_id"
+                           domain="[('bank_id', '=', bank_id)]"
+                           attrs="{'required':[('service','=','tilisy')]}"/>
                     <field name="tilisy_user_id" />
-                    <field name="application_id" />
                     <field name="psu_type" />
                     <field name="redirect_url" />
-                    <field name="key" />
-
-                    <button string="Get ASPSP info"
-                            type="object"
-                            attrs="{'invisible':[('aspsp_name','!=', False)]}"
-                            name="action_tilisy_get_aspsp"
-                            groups="base.group_system"
-                            class="oe_highlight"
-                    />
                     <field name="aspsp_name" />
                     <field name="aspsp_country" />
-                    <field name="tilisy_state" groups="base.group_no_one" readonly="1"/>
-
-                    <button string="Bank authentication"
-                            attrs="{'invisible':[('aspsp_name','=', False)]}"
-                            type="object"
-                            name="action_tilisy_authenticate"
-                            groups="base.group_system"
-                            class="oe_highlight"
-                    />
                 </group>
             </xpath>
         </field>

@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="tilisy_application_form_view" model="ir.ui.view">
+        <field name="name">tilisy_application_form_view</field>
+        <field name="model">tilisy.application</field>
+        <field name="arch" type="xml">
+            <form string="Tilisy application">
+                <header>
+                    <button string="Bank authentication"
+                            attrs="{'invisible':[('aspsp_name','=', False)]}"
+                            type="object"
+                            name="action_tilisy_authenticate"
+                            groups="base.group_system"
+                            class="oe_highlight"
+                    />
+                </header>
+                <sheet string="Form">
+                <group name="tilisy" string="Tilisy application">
+                    <group name="credentials" string="Credentials">
+                        <field name="application_id" />
+                        <field name="bank_id" />
+                        <field name="tilisy_user_id" />
+                        <field name="psu_type" />
+                        <field name="redirect_url" />
+                        <field name="company_id" />
+                        <field name="key_name" invisible="1"/>
+                        <field name="key" filename="key_name"/>
+                        <field name="online_bank_statement_provider_ids" readonly="1" widget="many2many_tags"/>
+                    </group>
+
+                    <group name="aspsp" string="ASPSP">
+                        <button string="Get ASPSP info"
+                                type="object"
+                                attrs="{'invisible':[('aspsp_name','!=', False)]}"
+                                name="action_tilisy_get_aspsp"
+                                groups="base.group_system"
+                                class="oe_highlight"
+                        />
+                        <field name="aspsp_name" />
+                        <field name="aspsp_country" />
+                        <field name="tilisy_state" groups="base.group_no_one" readonly="1"/>
+                    </group>
+                </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

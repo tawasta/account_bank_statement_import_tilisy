@@ -18,13 +18,17 @@ Configuration
 6. Select "Online (OCA)" from Bank Feeds
 7. Select Tilisy.com as provider and save
 8. Click the provider link (in Online Bank Statements (OCA)
-9. Edit the provider and provide information from EnableBanking:
+9. Select or create a "Tilisy application". If you select an existing one, skip to 13.
+10. Edit the "Tilisy application" and provide information from EnableBanking:
  - Application ID
+ - Bank
+ - Account type
+ - Company
  - Redirect URL (if not correct)
  - Key (Private key)
-10. Click "Get ASPSP info"
-11. Click "Authenticate" and make the authentication
-12. Return to the Journal and press "Pull Online Bank Statement"
+11. Click "Get ASPSP info"
+12. Click "Authenticate" and make the authentication
+13. Return to the Journal and press "Pull Online Bank Statement"
 
 Credits
 =======

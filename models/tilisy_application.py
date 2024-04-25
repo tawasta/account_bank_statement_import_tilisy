@@ -176,10 +176,10 @@ class TilisyApplication(models.Model):
         tilisy_state = str(uuid.uuid4())
 
         # Starting authorization
-        validity = 180
+        validity = 90
         # TODO: fetch maximum validity from ASPSP information
-        if self.aspsp_name in ["S-Pankki"]:
-            validity = 90
+        if self.aspsp_name in ["Nordea", "OP"]:
+            validity = 180
 
         body = {
             "access": {

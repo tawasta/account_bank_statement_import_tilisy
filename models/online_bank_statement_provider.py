@@ -133,9 +133,21 @@ class OnlineBankStatementProviderPonto(models.Model):
                         multiplier = 1
 
                     value_date = transaction.get("value_date")
-                    if value_date is None:
-                        # Some banks don't seem to return a value date
-                        value_date = transaction.get("booking_date")
+                    booking_date = transaction.get("booking_date")
+
+                    if not value_date or value_date < booking_date:
+                        # Some banks don't seem to return a value date at all
+                        # If value date is missing, we use booking date
+
+                        # As value date may be several banking dates before booking date,
+                        # we may also encounter a situation where we receive a transaction several
+                        # dates after the value date (even 3-4 days on weekends)
+                        # If the bank statement for that date is already handled in Odoo,
+                        # the transaction is silently dropped.
+                        # To avoid this, we set booking date as value date.
+                        # The value date in Odoo will be wrong and might cause a slight miscalculation
+                        # in overdue interest fee
+                        value_date = booking_date
 
                     partner_name = transaction.get("creditor") and transaction.get("creditor").get("name")
 

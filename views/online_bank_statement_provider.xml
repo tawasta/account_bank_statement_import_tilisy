@@ -9,11 +9,11 @@
         />
         <field name="arch" type="xml">
             <xpath expr="//group[@name='main']" position="inside">
-                <group name="tilisy" string="Tilisy.com" invisible="service != 'tilisy'">
+                <group name="tilisy" string="Tilisy.com" attrs="{'invisible':[('service','!=','tilisy')]}">
                     <field name="bank_id" readonly="1"/>
                     <field name="tilisy_application_id"
                            domain="[('bank_id', '=', bank_id)]"
-                           required="service == 'tilisy'"/>
+                           attrs="{'required':[('service','=','tilisy')]}"/>
                     <field name="tilisy_user_id" />
                     <field name="psu_type" />
                     <field name="redirect_url" />

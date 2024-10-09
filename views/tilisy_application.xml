@@ -7,7 +7,7 @@
             <form string="Tilisy application">
                 <header>
                     <button string="Bank authentication"
-                            attrs="{'invisible':[('aspsp_name','=', False)]}"
+                            invisible="aspsp_name == False"
                             type="object"
                             name="action_tilisy_authenticate"
                             groups="base.group_system"
@@ -31,7 +31,7 @@
                     <group name="aspsp" string="ASPSP">
                         <button string="Get ASPSP info"
                                 type="object"
-                                attrs="{'invisible':[('aspsp_name','!=', False)]}"
+                                invisible="aspsp_name == False"
                                 name="action_tilisy_get_aspsp"
                                 groups="base.group_system"
                                 class="oe_highlight"

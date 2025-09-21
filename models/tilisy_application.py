@@ -7,19 +7,28 @@ from datetime import datetime, timezone, timedelta
 import requests
 import jwt as pyjwt
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import _, fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
 
 class TilisyApplication(models.Model):
+    """
+    Application for Tilisy authentication.
+    Having a separate model for this, instead of using online.bank.statement.provider,
+    allows using one Tilisy application for multiple journals / bank accounts.
+
+    This means that you can have e.g. one Tilisy application for all Nordea bank accounts
+    and another one for all OP bank accounts.
+    """
 
     _name = "tilisy.application"
     _description = "Application for Tilisy authentication"
     _order = "application_id"
     _rec_name = "application_id"
 
+    # region Fields
     online_bank_statement_provider_ids = fields.One2many(
         comodel_name="online.bank.statement.provider",
         inverse_name="tilisy_application_id",
@@ -38,7 +47,7 @@ class TilisyApplication(models.Model):
         string="Redirect URL", default=lambda self: self._default_redirect_url()
     )
     api_origin = fields.Char(
-        string="API Origin", default="https://api.tilisy.com", readonly=True
+        string="API Origin", default="https://api.enablebanking.com", readonly=True
     )
     auth_code = fields.Char(string="Auth code", readonly=False, copy=False)
     jwt = fields.Char(string="Latest JWT", readonly=True)
@@ -74,8 +83,9 @@ class TilisyApplication(models.Model):
         url += "/tilisy_auth"
 
         return url
+    # endregion
 
-    # Tilisy
+    # region Tilisy/EnableBanking actions
     def action_tilisy_authenticate(self):
         return self._tilisy_authorize()
 
@@ -125,6 +135,9 @@ class TilisyApplication(models.Model):
             )
 
     def _tilisy_get_basic_headers(self, jwt):
+        """
+        Get basic headers for Tilisy API requests
+        """
         base_headers = {"Authorization": f"Bearer {jwt}"}
 
         # Requesting application details
@@ -144,6 +157,9 @@ class TilisyApplication(models.Model):
         return base_headers
 
     def _tilisy_get_jwt_token(self):
+        """
+        Generate JWT token for Tilisy API requests
+        """
         iat = int(datetime.now().timestamp())
 
         # Generate JWT token
@@ -183,7 +199,7 @@ class TilisyApplication(models.Model):
 
         body = {
             "access": {
-                # Maximum validity 90 days
+                # Maximum validity for authentication
                 "valid_until": (
                     datetime.now(timezone.utc) + timedelta(days=validity)
                 ).isoformat()
@@ -212,3 +228,5 @@ class TilisyApplication(models.Model):
         Tilisy: get available accounts
         """
         pass
+
+    # endregion

@@ -13,7 +13,10 @@ _logger = logging.getLogger(__name__)
 class TilisyController(http.Controller):
     @http.route("/tilisy_auth", type="http", auth="user")
     def tilisy_auth(self, *args, **kwargs):
-
+        """
+        Handle the redirect from Tilisy authentication and store the session
+        information to the Tilisy application record.
+        """
         auth_code = kwargs.get("code")
         tilisy_state = kwargs.get("state")
         tilisy = request.env["tilisy.application"].sudo().search(
@@ -27,6 +30,7 @@ class TilisyController(http.Controller):
             f"{tilisy.api_origin}/sessions",
             json={"code": auth_code},
             headers=base_headers,
+            timeout=10,
         )
         if r.status_code == 200:
             session = r.json()

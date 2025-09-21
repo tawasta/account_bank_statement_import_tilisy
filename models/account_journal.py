@@ -7,7 +7,9 @@ class AccountJournal(models.Model):
     _inherit = "account.journal"
 
     def action_tilisy_authenticate(self):
-        # A shortcut for Tilisy authentication
+        """
+        A shortcut action for Tilisy authentication
+        """
         self.ensure_one()
         if self.online_bank_statement_provider == "tilisy":
             return self.online_bank_statement_provider_id.tilisy_application_id.action_tilisy_authenticate()

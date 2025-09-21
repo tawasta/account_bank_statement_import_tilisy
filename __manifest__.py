@@ -19,12 +19,12 @@
 ##############################################################################
 
 {
-    "name": "Online Bank Statements: Tilisy.com",
-    "summary": "Fetch bank account statements from your bank via Tilisy.com",
+    "name": "Online Bank Statements: Enablebanking / Tilisy.com",
+    "summary": "Fetch bank account statements via EnableBanking / Tilisy.com",
     "version": "17.0.1.0.0",
-    "category": "Invoicing",
-    "website": "https://github.com/rockitoy/account_bank_statement_import_tilisy",
-    "author": "RockIT, Tawasta",
+    "category": "Accounting",
+    "website": "https://github.com/tawasta/account_bank_statement_import_tilisy",
+    "author": "RockIT, Futural",
     "license": "LGPL-3",
     "application": False,
     "installable": True,

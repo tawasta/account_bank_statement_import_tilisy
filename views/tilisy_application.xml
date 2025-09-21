@@ -35,6 +35,7 @@
                                 name="action_tilisy_get_aspsp"
                                 groups="base.group_system"
                                 class="oe_highlight"
+                                colspan="2"
                         />
                         <field name="aspsp_name" />
                         <field name="aspsp_country" />

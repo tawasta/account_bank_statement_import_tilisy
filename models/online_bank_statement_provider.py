@@ -17,6 +17,7 @@ class OnlineBankStatementProviderPonto(models.Model):
 
     _inherit = "online.bank.statement.provider"
 
+    # region Fields
     tilisy_application_id = fields.Many2one(
         comodel_name="tilisy.application",
         string="Tilisy application"
@@ -56,7 +57,9 @@ class OnlineBankStatementProviderPonto(models.Model):
         related="tilisy_application_id.tilisy_user_notified",
         readonly=True
     )
+    # endregion
 
+    # region Helper methods
     @api.model
     def _get_available_services(self):
         return super()._get_available_services() + [
@@ -69,11 +72,12 @@ class OnlineBankStatementProviderPonto(models.Model):
             return super()._obtain_statement_data(date_since, date_until)
         return self._tilisy_obtain_statement_data(date_since, date_until)
 
-    # Tilisy
 
+    # region Tilisy/EnableBanking methods
     def _tilisy_obtain_statement_data(self, date_since, date_until):
         """
         Tilisy: get bank statement data
+        # TODO: break this into smaller methods
         """
         self.ensure_one()
         tilisy = self.tilisy_application_id
@@ -220,3 +224,4 @@ class OnlineBankStatementProviderPonto(models.Model):
                 raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
 
         return transactions, {}
+    # endregion

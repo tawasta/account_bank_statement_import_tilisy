@@ -1,11 +1,11 @@
+import base64
+import json
 import logging
 import uuid
-import json
-import base64
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-import requests
 import jwt as pyjwt
+import requests
 
 from odoo import _, fields, models
 from odoo.exceptions import ValidationError
@@ -14,7 +14,6 @@ _logger = logging.getLogger(__name__)
 
 
 class TilisyApplication(models.Model):
-
     _name = "tilisy.application"
     _description = "Application for Tilisy authentication"
     _order = "application_id"
@@ -53,23 +52,20 @@ class TilisyApplication(models.Model):
     key_name = fields.Char()
 
     aspsp_name = fields.Char(string="ASPSP name")
-    aspsp_country = fields.Many2one(
-        string="ASPSP country", comodel_name="res.country")
+    aspsp_country = fields.Many2one(string="ASPSP country", comodel_name="res.country")
     psu_type = fields.Selection(
         string="Account type",
         selection=[("business", "Business"), ("personal", "Personal")],
         default="personal",
     )
-    tilisy_state = fields.Char(
-        help="Helper for identifying the correct provider")
+    tilisy_state = fields.Char(help="Helper for identifying the correct provider")
     tilisy_user_id = fields.Many2one(
         comodel_name="res.users",
         string="Responsible",
-        help="The person to be notified about expired authentication or other problems"
+        help="The person to be notified about expired authentication or other problems",
     )
     tilisy_user_notified = fields.Boolean(
-        "User has been notified about Tilisy-problems",
-        default=False
+        "User has been notified about Tilisy-problems", default=False
     )
     company_id = fields.Many2one(
         comodel_name="res.company",
@@ -92,7 +88,7 @@ class TilisyApplication(models.Model):
                 # Get valid until from session data
                 valid_until = session.get("access", {}).get("valid_until")
                 # Replace Z with +00:00 and remove timezone info
-                valid_until = valid_until.replace('Z', '+00:00')
+                valid_until = valid_until.replace("Z", "+00:00")
                 valid_until = datetime.fromisoformat(valid_until).replace(tzinfo=None)
                 record.valid_until = valid_until
             else:
@@ -103,18 +99,14 @@ class TilisyApplication(models.Model):
         return self._tilisy_authorize()
 
     def action_tilisy_get_aspsp(self):
-        """ Fetch ASPSP information using bank BIC in bank account """
+        """Fetch ASPSP information using bank BIC in bank account"""
         self.ensure_one()
 
         if not self.bank_id:
-            raise ValidationError(
-                _("Please configure a bank account")
-            )
+            raise ValidationError(_("Please configure a bank account"))
 
         if not self.bank_id.bic:
-            raise ValidationError(
-                _("Please add a BIC to your bank account")
-            )
+            raise ValidationError(_("Please add a BIC to your bank account"))
 
         bic = self.bank_id.bic
 
@@ -123,12 +115,16 @@ class TilisyApplication(models.Model):
 
         if not self.company_id.country_code:
             raise ValidationError(
-                _("Country code is missing! Please add a country for your company."))
+                _("Country code is missing! Please add a country for your company.")
+            )
 
-        body = {"psu_type": self.psu_type,
-                "country": self.company_id.country_code}
-        r = requests.get(f"{self.api_origin}/aspsps",
-                         params=body, headers=base_headers)
+        body = {"psu_type": self.psu_type, "country": self.company_id.country_code}
+        r = requests.get(
+            f"{self.api_origin}/aspsps",
+            params=body,
+            headers=base_headers,
+            timeout=10,
+        )
 
         aspsp_names = []
         for aspsp in r.json().get("aspsps", []):
@@ -137,16 +133,16 @@ class TilisyApplication(models.Model):
 
             if aspsp.get("bic") and aspsp.get("bic") == bic:
                 self.aspsp_name = aspsp_name
-                self.aspsp_country = self.env["res.country"].search([
-                    ("code", "=", aspsp.get("country"))
-                ])
+                self.aspsp_country = self.env["res.country"].search(
+                    [("code", "=", aspsp.get("country"))]
+                )
 
         if not self.aspsp_name:
             raise ValidationError(
                 _(
-                    "Could not find ASPSP info. Please check your bank BIC and name. Possible names: {}".format(
-                        ", ".join(aspsp_names)
-                    )
+                    "Could not find ASPSP info. Please check your bank BIC and name. "
+                    "Possible names: %s",
+                    ", ".join(aspsp_names),
                 )
             )
 
@@ -155,18 +151,23 @@ class TilisyApplication(models.Model):
 
         # Requesting application details
         # This doesn't really do anything but fetch and print the details
-        r = requests.get(f"{self.api_origin}/application",
-                         headers=base_headers)
+        r = requests.get(
+            f"{self.api_origin}/application",
+            headers=base_headers,
+            timeout=10,
+        )
         if r.status_code == 200:
             app = r.json()
             _logger.info(f"Application details: {app}")
         else:
-            raise ValidationError(
-                _(f"Error response {r.status_code}: {r.text}"))
+            raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
 
         if not app.get("active"):
             raise ValidationError(
-                _("This application is not yet activated. Please do that before continuing")
+                _(
+                    "This application is not yet activated. "
+                    "Please do that before continuing"
+                )
             )
 
         return base_headers
@@ -191,14 +192,15 @@ class TilisyApplication(models.Model):
         if not isinstance(jwt, str):
             jwt = jwt.decode("utf-8")
 
-        _logger.debug(f"JWT: {jwt}")
+        _logger.debug("JWT: %s", jwt)
 
         return jwt
 
     def _tilisy_authorize(self):
         """
-        Tilisy: authorization
+        Enable Banking: authorization
         """
+
         jwt = self._tilisy_get_jwt_token()
         base_headers = self._tilisy_get_basic_headers(jwt)
         tilisy_state = str(uuid.uuid4())
@@ -221,8 +223,12 @@ class TilisyApplication(models.Model):
             "redirect_url": self.redirect_url,
             "psu_type": self.psu_type,
         }
-        r = requests.post(f"{self.api_origin}/auth",
-                          json=body, headers=base_headers)
+        r = requests.post(
+            f"{self.api_origin}/auth",
+            json=body,
+            headers=base_headers,
+            timeout=10,
+        )
         if r.status_code == 200:
             # Save the jwt for controller
             self.sudo().jwt = jwt
@@ -234,11 +240,11 @@ class TilisyApplication(models.Model):
                 "target": "self",
             }
         else:
-            raise ValidationError(
-                _(f"Error response {r.status_code}: {r.text}"))
+            raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
 
     def _tilisy_get_account_ids(self):
         """
         Tilisy: get available accounts
         """
+        _logger.warning("Fetching accounts is not implemented")
         pass

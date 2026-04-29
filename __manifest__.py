@@ -23,7 +23,7 @@
     "summary": "Fetch bank account statements via EnableBanking/Tilisy.com",
     "version": "17.0.1.1.0",
     "category": "Invoicing",
-    "website": "https://github.com/rockitoy/account_bank_statement_import_tilisy",
+    "website": "https://github.com/tawasta/account_bank_statement_import_tilisy",
     "author": "RockIT, Futural",
     "license": "LGPL-3",
     "application": False,

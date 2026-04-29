@@ -4,18 +4,20 @@
         <field name="name">account.journal.form.tilisy</field>
         <field name="model">account.journal</field>
         <field
-            name="inherit_id"
-            ref="account_statement_import_online.view_account_journal_form"
-        />
+      name="inherit_id"
+      ref="account_statement_import_online.view_account_journal_form"
+    />
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button type="object"
-                        class="oe_stat_button"
-                        icon="fa-lock"
-                        groups="account.group_account_user"
-                        name="action_tilisy_authenticate"
-                        invisible="online_bank_statement_provider != 'tilisy'"
-                        string="Bank authentication">
+                <button
+          type="object"
+          class="oe_stat_button"
+          icon="fa-lock"
+          groups="account.group_account_user"
+          name="action_tilisy_authenticate"
+          invisible="online_bank_statement_provider != 'tilisy'"
+          string="Bank authentication"
+        >
                         <div class="o_stat_info">
                             <span class="o_stat_text">Bank authentication</span>
                         </div>

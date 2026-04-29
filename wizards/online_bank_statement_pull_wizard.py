@@ -1,12 +1,11 @@
 import json
 from datetime import datetime
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import _, fields, models
+from odoo.exceptions import ValidationError
 
 
 class OnlineBankStatementPullWizard(models.TransientModel):
-
     _inherit = "online.bank.statement.pull.wizard"
 
     def action_pull(self):
@@ -15,7 +14,9 @@ class OnlineBankStatementPullWizard(models.TransientModel):
         if provider.service == "tilisy":
             # Check if authentication is still valid
             tilisy = provider.tilisy_application_id
-            msg = _("You bank authentication is invalid. Please authenticate and try again")
+            msg = _(
+                "You bank authentication is invalid. Please authenticate and try again"
+            )
             if not tilisy.session:
                 raise ValidationError(msg)
 

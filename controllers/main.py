@@ -1,11 +1,12 @@
+import json
+import logging
+
 import requests
 import werkzeug
-import logging
-import json
-from odoo import http
-from odoo import _
-from odoo.http import request
+
+from odoo import _, http
 from odoo.exceptions import ValidationError
+from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
@@ -13,11 +14,12 @@ _logger = logging.getLogger(__name__)
 class TilisyController(http.Controller):
     @http.route("/tilisy_auth", type="http", auth="user")
     def tilisy_auth(self, *args, **kwargs):
-
         auth_code = kwargs.get("code")
         tilisy_state = kwargs.get("state")
-        tilisy = request.env["tilisy.application"].sudo().search(
-            [("tilisy_state", "=", tilisy_state)], limit=1
+        tilisy = (
+            request.env["tilisy.application"]
+            .sudo()
+            .search([("tilisy_state", "=", tilisy_state)], limit=1)
         )
         jwt = tilisy._tilisy_get_jwt_token()
         base_headers = {"Authorization": f"Bearer {jwt}"}
@@ -27,6 +29,7 @@ class TilisyController(http.Controller):
             f"{tilisy.api_origin}/sessions",
             json={"code": auth_code},
             headers=base_headers,
+            timeout=10,
         )
         if r.status_code == 200:
             session = r.json()
@@ -41,11 +44,12 @@ class TilisyController(http.Controller):
 
         action = request.env.ref("account.action_account_journal_form")
         menu = request.env.ref("account.menu_action_account_journal_form")
+        journal_id = tilisy.online_bank_statement_provider_ids[0].journal_id.id
         # TODO: return list of journals instead of one
-        redirect_url = "/web#id={}&action={}&amp;model=account.journal&view_type=form&menu_id={}".format(
-            tilisy.online_bank_statement_provider_ids[0].journal_id.id,
-            action.id,
-            menu.id,
+        redirect_url = (
+            f"/web#id={journal_id}&action={action.id}"
+            f"&amp;model=account.journal&view_type=form"
+            f"&menu_id={menu.id}"
         )
 
         return werkzeug.utils.redirect(redirect_url, 303)

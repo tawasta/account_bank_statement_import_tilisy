@@ -14,6 +14,7 @@
                     <field name="tilisy_application_id"
                            domain="[('bank_id', '=', bank_id)]"
                            required="service == 'tilisy'"/>
+                    <field name="tilisy_valid_until" />
                     <field name="tilisy_user_id" />
                     <field name="psu_type" />
                     <field name="redirect_url" />

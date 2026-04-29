@@ -7,8 +7,8 @@ from datetime import datetime, timezone, timedelta
 import requests
 import jwt as pyjwt
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import _, fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -43,17 +43,25 @@ class TilisyApplication(models.Model):
     auth_code = fields.Char(string="Auth code", readonly=False, copy=False)
     jwt = fields.Char(string="Latest JWT", readonly=True)
     session = fields.Char(string="Latest session", readonly=True)
+    valid_until = fields.Datetime(
+        string="Valid until",
+        help="Authentication valid until",
+        readonly=True,
+        compute="_compute_valid_until",
+    )
     key = fields.Binary()
     key_name = fields.Char()
 
     aspsp_name = fields.Char(string="ASPSP name")
-    aspsp_country = fields.Many2one(string="ASPSP country", comodel_name="res.country")
+    aspsp_country = fields.Many2one(
+        string="ASPSP country", comodel_name="res.country")
     psu_type = fields.Selection(
         string="Account type",
         selection=[("business", "Business"), ("personal", "Personal")],
         default="personal",
     )
-    tilisy_state = fields.Char(help="Helper for identifying the correct provider")
+    tilisy_state = fields.Char(
+        help="Helper for identifying the correct provider")
     tilisy_user_id = fields.Many2one(
         comodel_name="res.users",
         string="Responsible",
@@ -67,6 +75,7 @@ class TilisyApplication(models.Model):
         comodel_name="res.company",
         string="Company",
         required=True,
+        default=lambda self: self.env.company,
     )
 
     def _default_redirect_url(self):
@@ -74,6 +83,20 @@ class TilisyApplication(models.Model):
         url += "/tilisy_auth"
 
         return url
+
+    def _compute_valid_until(self):
+        for record in self:
+            if record.session:
+                session = json.loads(record.session)
+                _logger.debug(f"Session data: {session}")
+                # Get valid until from session data
+                valid_until = session.get("access", {}).get("valid_until")
+                # Replace Z with +00:00 and remove timezone info
+                valid_until = valid_until.replace('Z', '+00:00')
+                valid_until = datetime.fromisoformat(valid_until).replace(tzinfo=None)
+                record.valid_until = valid_until
+            else:
+                record.valid_until = False
 
     # Tilisy
     def action_tilisy_authenticate(self):
@@ -99,10 +122,13 @@ class TilisyApplication(models.Model):
         base_headers = self._tilisy_get_basic_headers(jwt)
 
         if not self.company_id.country_code:
-            raise ValidationError(_("Country code is missing! Please add a country for your company."))
+            raise ValidationError(
+                _("Country code is missing! Please add a country for your company."))
 
-        body = {"psu_type": self.psu_type, "country": self.company_id.country_code}
-        r = requests.get(f"{self.api_origin}/aspsps", params=body, headers=base_headers)
+        body = {"psu_type": self.psu_type,
+                "country": self.company_id.country_code}
+        r = requests.get(f"{self.api_origin}/aspsps",
+                         params=body, headers=base_headers)
 
         aspsp_names = []
         for aspsp in r.json().get("aspsps", []):
@@ -129,12 +155,14 @@ class TilisyApplication(models.Model):
 
         # Requesting application details
         # This doesn't really do anything but fetch and print the details
-        r = requests.get(f"{self.api_origin}/application", headers=base_headers)
+        r = requests.get(f"{self.api_origin}/application",
+                         headers=base_headers)
         if r.status_code == 200:
             app = r.json()
             _logger.info(f"Application details: {app}")
         else:
-            raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
+            raise ValidationError(
+                _(f"Error response {r.status_code}: {r.text}"))
 
         if not app.get("active"):
             raise ValidationError(
@@ -193,7 +221,8 @@ class TilisyApplication(models.Model):
             "redirect_url": self.redirect_url,
             "psu_type": self.psu_type,
         }
-        r = requests.post(f"{self.api_origin}/auth", json=body, headers=base_headers)
+        r = requests.post(f"{self.api_origin}/auth",
+                          json=body, headers=base_headers)
         if r.status_code == 200:
             # Save the jwt for controller
             self.sudo().jwt = jwt
@@ -205,7 +234,8 @@ class TilisyApplication(models.Model):
                 "target": "self",
             }
         else:
-            raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
+            raise ValidationError(
+                _(f"Error response {r.status_code}: {r.text}"))
 
     def _tilisy_get_account_ids(self):
         """

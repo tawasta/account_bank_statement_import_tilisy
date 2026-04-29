@@ -2,11 +2,11 @@
    :target: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
    :alt: License: LGPL-3
 
-==================================
-Online Bank Statements: Tilisy.com
-==================================
+================================================
+Online Bank Statements: EnableBanking/Tilisy.com
+================================================
 
-Fetch bank account statements from your bank via Tilisy.com
+Fetch bank account statements via EnableBanking/Tilisy.com
 
 Configuration
 =============
@@ -35,10 +35,10 @@ Credits
 
 Contributors
 ------------
-* Jarmo Kortetjärvi <jarmo.kortetjarvi@tawasta.fi>
+* Jarmo Kortetjärvi <jarmo.kortetjarvi@futural.fi>
 * Mikko Salmela <mikko.salmela@rockit.fi>
 
 Maintainer
 ----------
 
-This module is maintained by Oy Tawasta OS Technologies Ltd. & RockIT Oy
+This module is maintained by Futural Oy & RockIT Oy

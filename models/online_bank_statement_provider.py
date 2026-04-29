@@ -1,11 +1,8 @@
 import logging
-import uuid
 import json
-import base64
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 import requests
-import jwt as pyjwt
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -13,13 +10,16 @@ from odoo.exceptions import UserError, ValidationError
 _logger = logging.getLogger(__name__)
 
 
-class OnlineBankStatementProviderPonto(models.Model):
+class OnlineBankStatementProviderEnablebanking(models.Model):
 
     _inherit = "online.bank.statement.provider"
 
     tilisy_application_id = fields.Many2one(
         comodel_name="tilisy.application",
-        string="Tilisy application"
+        string="EnableBanking application"
+    )
+    tilisy_valid_until = fields.Datetime(
+        related="tilisy_application_id.valid_until",
     )
     bank_id = fields.Many2one(
         comodel_name="res.bank",
@@ -60,7 +60,7 @@ class OnlineBankStatementProviderPonto(models.Model):
     @api.model
     def _get_available_services(self):
         return super()._get_available_services() + [
-            ("tilisy", "Tilisy.com"),
+            ("tilisy", "EnableBanking"),
         ]
 
     def _obtain_statement_data(self, date_since, date_until):
@@ -102,10 +102,16 @@ class OnlineBankStatementProviderPonto(models.Model):
             # API won't allow using a future date here
             date_until = datetime.now()
 
+        date_from = date_since.date().isoformat()
+        date_to = date_until.date().isoformat()
         query = {
-            "date_from": date_since.date().isoformat(),
-            "date_to": date_until.date().isoformat(),
+            "date_from": date_from,
+            "date_to": date_to,
         }
+        _logger.info(
+            _("Fetching transactions for %(date_from)s-%(date_to)s",
+              date_from=date_from, date_to=date_to)
+        )
 
         jwt = tilisy._tilisy_get_jwt_token()
         base_headers = {"Authorization": f"Bearer {jwt}"}
@@ -120,10 +126,13 @@ class OnlineBankStatementProviderPonto(models.Model):
                 f"{tilisy.api_origin}/accounts/{account_uid}/transactions",
                 params=query,
                 headers=base_headers,
+                timeout=30,
             )
             if r.status_code == 200:
                 resp_data = r.json()
-                for transaction in resp_data["transactions"]:
+                raw_transactions = resp_data["transactions"]
+                _logger.info("Found %s transactions", len(raw_transactions))
+                for transaction in raw_transactions:
                     sequence += 1
 
                     transaction_type = transaction.get("credit_debit_indicator")
@@ -218,5 +227,5 @@ class OnlineBankStatementProviderPonto(models.Model):
                 raise UserError(msg)
             else:
                 raise ValidationError(_(f"Error response {r.status_code}: {r.text}"))
-
+            
         return transactions, {}

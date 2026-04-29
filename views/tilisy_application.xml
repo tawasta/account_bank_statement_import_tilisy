@@ -4,45 +4,75 @@
         <field name="name">tilisy_application_form_view</field>
         <field name="model">tilisy.application</field>
         <field name="arch" type="xml">
-            <form string="Tilisy application">
+            <form string="EnableBanking application">
                 <header>
-                    <button string="Bank authentication"
-                            invisible="aspsp_name == False"
-                            type="object"
-                            name="action_tilisy_authenticate"
-                            groups="base.group_system"
-                            class="oe_highlight"
-                    />
+                    <button
+            string="Bank authentication"
+            invisible="aspsp_name == False"
+            type="object"
+            name="action_tilisy_authenticate"
+            groups="base.group_system"
+            class="oe_highlight"
+          />
                 </header>
                 <sheet string="Form">
-                <group name="tilisy" string="Tilisy application">
-                    <group name="credentials" string="Credentials">
-                        <field name="application_id" />
-                        <field name="bank_id" />
-                        <field name="tilisy_user_id" />
-                        <field name="psu_type" />
-                        <field name="redirect_url" />
-                        <field name="company_id" />
-                        <field name="key_name" invisible="1"/>
-                        <field name="key" filename="key_name"/>
-                        <field name="online_bank_statement_provider_ids" readonly="1" widget="many2many_tags"/>
-                    </group>
+                    <group name="tilisy" string="EnableBanking application">
+                        <group name="credentials" string="Credentials">
+                            <field name="session" invisible="1" />
+                            <field name="valid_until" invisible="not session" />
+                            <field name="application_id" />
+                            <field name="bank_id" />
+                            <field name="tilisy_user_id" />
+                            <field name="psu_type" />
+                            <field name="redirect_url" />
+                            <field name="company_id" />
+                            <field name="key_name" invisible="1" />
+                            <field name="key" filename="key_name" />
+                            <field
+                name="online_bank_statement_provider_ids"
+                readonly="1"
+                widget="many2many_tags"
+              />
+                        </group>
 
-                    <group name="aspsp" string="ASPSP">
-                        <button string="Get ASPSP info"
-                                type="object"
-                                invisible="aspsp_name == False"
-                                name="action_tilisy_get_aspsp"
-                                groups="base.group_system"
-                                class="oe_highlight"
-                        />
-                        <field name="aspsp_name" />
-                        <field name="aspsp_country" />
-                        <field name="tilisy_state" groups="base.group_no_one" readonly="1"/>
+                        <group name="aspsp" string="ASPSP">
+                            <label for="aspsp_name" string="ASPSP info" />
+                            <div class="o_row">
+                                <button
+                  string="Get ASPSP info"
+                  type="object"
+                  invisible="bank_id == False"
+                  name="action_tilisy_get_aspsp"
+                  groups="base.group_system"
+                  class="oe_highlight"
+                />
+                            </div>
+
+                            <field name="aspsp_name" />
+                            <field name="aspsp_country" />
+                            <field
+                name="tilisy_state"
+                groups="base.group_no_one"
+                readonly="1"
+              />
+                        </group>
                     </group>
-                </group>
                 </sheet>
             </form>
         </field>
     </record>
+
+    <record id="tilisy_application_action" model="ir.actions.act_window">
+        <field name="name">EnableBanking Applications</field>
+        <field name="res_model">tilisy.application</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+    id="tilisy_application_menu"
+    action="tilisy_application_action"
+    parent="account.account_banks_menu"
+    sequence="120"
+  />
+
 </odoo>

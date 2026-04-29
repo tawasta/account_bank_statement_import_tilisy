@@ -4,16 +4,23 @@
         <field name="name">online.bank.statement.provider.form.tilisy</field>
         <field name="model">online.bank.statement.provider</field>
         <field
-            name="inherit_id"
-            ref="account_statement_import_online.online_bank_statement_provider_form"
-        />
+      name="inherit_id"
+      ref="account_statement_import_online.online_bank_statement_provider_form"
+    />
         <field name="arch" type="xml">
             <xpath expr="//group[@name='main']" position="inside">
-                <group name="tilisy" string="Tilisy.com" invisible="service != 'tilisy'">
-                    <field name="bank_id" readonly="1"/>
-                    <field name="tilisy_application_id"
-                           domain="[('bank_id', '=', bank_id)]"
-                           required="service == 'tilisy'"/>
+                <group
+          name="tilisy"
+          string="Enable Banking"
+          invisible="service != 'tilisy'"
+        >
+                    <field name="bank_id" readonly="1" />
+                    <field
+            name="tilisy_application_id"
+            domain="[('bank_id', '=', bank_id)]"
+            required="service == 'tilisy'"
+          />
+                    <field name="tilisy_valid_until" />
                     <field name="tilisy_user_id" />
                     <field name="psu_type" />
                     <field name="redirect_url" />
